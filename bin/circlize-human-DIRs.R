@@ -55,4 +55,30 @@ circos.initializeWithIdeogram(species = "hg38", chromosome.index = "chr9", plotT
 
 circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
 
+############################################################################
+## CREATE LOTS OF PLOTS IN ONE PLOT
 
+# colour function
+color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
+                      colors = c("blue", "white", "red"), transparency = 0)
+# Arrange the layout
+layout(matrix(1:24, 4, 6)) 
+
+# A loop to create 23 circular plots
+for(i in 1:23) {
+# par(mar = c(0.25, 0.25, 0.25, 0.25), bg=rgb(1,1,1,0.1) )
+  #factors = 1:8
+  
+  # parameters
+  circos.par("start.degree" = 90, "gap.degree" = 4, cell.padding = c(0, 0, 0, 0))
+  
+  # add ideogram
+  circos.initializeWithIdeogram(track.height = 0.01,
+                                species = "hg38", chromosome.index = "chr9", 
+                                plotType = c("ideogram", "axis", "labels"))
+  
+  # add links
+  circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
+
+  circos.clear()
+}
