@@ -63,11 +63,20 @@ df = data.frame(from = rep(rownames(mat), times = ncol(mat)),
 
 chordDiagram(mat)
 
+
 ## THe bloody chromosome
-circos.par("start.degree" = 90)
+bed1 = test[ ,c("chr1", "start1", "end1", "logFC")]
+bed2 = test[ ,c("chr2", "start2", "end2", "logFC")]
 
-circos.initializeWithIdeogram(chromosome.index = "chr9", plotType = c("axis", "labels"))
+circos.clear()
 
-circos.genomicLink(bed1, bed2, col = "red", border = NA)
+color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
+                       colors = c("blue", "white", "red"), transparency = 0)
+
+circos.par("start.degree" = 90, "gap.degree" = 4)
+
+circos.initializeWithIdeogram(species = "hg38", chromosome.index = "chr9", plotType = c("ideogram", "axis", "labels"))
+
+circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
 
 
