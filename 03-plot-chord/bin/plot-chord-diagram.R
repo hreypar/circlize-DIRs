@@ -3,13 +3,35 @@
 # hreyes August 2020
 # circlize-human-DIRs.R
 ########################################################################
-# Read in a list of filtered DIRs and plot them in a circos like 
+# Read in two BED files of DIRs and plot them in a circos like 
 # diagram
 ########################################################################
 #
 #################### import libraries and set options ##################
 suppressMessages(library(circlize))
+library(optparse)
+message("\nRequired libraries have been loaded.")
 #
+########################## read in data ################################
+option_list = list(
+  make_option(opt_str = c("-i", "--input_bed1"), 
+              type = "character",
+              help = "Input BED1 of significant pairs as an Rds file."),
+  make_option(opt_str = c("-j", "--input_bed2"), 
+              type = "character", 
+              help = "Input BED2 of significant pairs as an Rds file."),
+  make_option(opt_str = c("-o", "--output_plot"), 
+              type = "character", 
+              help = "File name (including path) for the chord diagram.")
+)
+
+opt <- parse_args(OptionParser(option_list=option_list))
+
+if (is.null(opt$input)){
+  print_help(OptionParser(option_list=option_list))
+  stop("The input file is mandatory.n", call.=FALSE)
+}
+
 
 ########################## functions ###################################
 # it's dangerous to go alone! take this.
