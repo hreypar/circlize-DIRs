@@ -12,8 +12,7 @@
 #
 # Run R script to generate BEDs.
 #
-results/%.bed1.significantpairs.table.Rds\
-results/%.bed2.significantpairs.table.Rds:	data/%.significantpairs.table.Rds
+results/%.bed1.sigpairs.table.Rds results/%.bed2.sigpairs.table.Rds:V:	data/%.significantpairs.table.Rds
 	mkdir -p `dirname $target`
 	bin/generate-beds.R \
 		--input $prereq \

@@ -8,5 +8,5 @@ find -L data/ \
 	-name "*.significantpairs.table.Rds" \
 | sed -r \
 	-e 's#^data/#results/#' \
-	-e 's#.significantpairs.table.Rds$#.bed1.significantpairs.table.Rds#'
+	-e 's#.significantpairs.table.Rds$#.bed1.sigpairs.table.Rds#'
 
