@@ -99,8 +99,8 @@ plot_individual_chords <- function(b1, b2) {
   
   
   title(main = this.main, sub = chr, 
-        cex.main = 2.5, cex.sub = 3, 
-        line = -1.25, adj = 0.1,
+        cex.main = 2, cex.sub = 3.5, 
+        line = -1.25, adj = 0.05,
         font.main = 2, font.sub = 2)
   
   circos.clear()
