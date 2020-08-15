@@ -15,8 +15,20 @@ library(optparse)
 #
 ########################## functions ###################################
 # it's dangerous to go alone! take this.
-export_significantpairs_df <- function(sigpairs.name, output.dir) {
+#
+# save an individual data frame from the list
+export_significantpairs_df <- function(sigpairs.name) {
+  # select data frame from list
+  sigpairs.df = significantpairs.list[[sigpairs.name]]
   
+  # parse list name and dataframe name
+  this.df = gsub("\\.", "-vs-", gsub(pattern = "sig.", "", sigpairs.name))
+  the.parent = gsub("\\.significantpairs\\.Rds", "", basename(opt$input))
+  
+  # build name for outfile
+  the.outfile = paste0(opt$outdir, "/", the.parent, "-", this.df, ".significantpairs.Rds")
+  
+  saveRDS(object = sigpairs.df, file = the.outfile)
 }
 # 
 ########################## read in data ###################################
@@ -31,12 +43,12 @@ option_list = list(
 
 opt <- parse_args(OptionParser(option_list=option_list))
 
-if (class(opt$input) != "list"){
+significantpairs.list <- readRDS(file = opt$input)
+
+if (class(significantpairs.list) != "list"){
   print_help(OptionParser(option_list=option_list))
   stop("The input file must be a list of significant pairs\n", call.=FALSE)
 }
-
-significantpairs.list <- readRDS(file = opt$input)
 #
 ########### call function to write out individual data frames #############
-lapply(names(significantpairs.list), export_significantpairs_df, output.dir=opt$outdir)
+lapply(names(significantpairs.list), export_significantpairs_df)
