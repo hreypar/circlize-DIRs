@@ -10,6 +10,9 @@
 #
 # AUTHOR: HRG
 #
+# read in config file
+<config.mk
+#
 # Run R script to generate chord diagram from BEDs.
 #
 results/%.chord_diagram.png:	data/%.bed1.sigpairs.table.Rds data/%.bed2.sigpairs.table.Rds
