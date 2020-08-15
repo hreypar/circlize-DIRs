@@ -62,34 +62,49 @@ format_chromosomes <- function(chrs, type) {
 }
 #
 ######################## plot each chromosome ##########################
-plot_individual_chords <- function() {
+plot_individual_chords <- function(b1, b2) {
 
-# Split BEDs by chromosome
-bed1 <- split(x = bed1, f = bed1$chr1, drop = FALSE)
-bed2 <- split(x = bed2, f = bed2$chr2, drop = FALSE)
-
-
-# PDF file for all plots
-pdf(file = )
-
-color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
-                       colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
-
-circos.par("start.degree" = 90, "gap.degree" = 4)
-
-circos.initializeWithIdeogram(ideogram.height = 0.05, major.by = 5000000, species = "hg38", chromosome.index = "chr9", 
-                              plotType = c("ideogram", "axis", "labels"))
-
-circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
-
-circos.clear()
-
-# one PNG for each chromosome
-
+  # Split BEDs by chromosome
+  b1 <- split(x = b1, f = b1$chr1, drop = TRUE)
+  b2 <- split(x = b2, f = b2$chr2, drop = TRUE)
+  
+  # Set colours to use
+  color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
+                         colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
+  
+    # PDF file for all plots
+  pdf(file = paste0(opt$output_plot, "_byChr.pdf"), width = 18, height = 18)
+  
+  lapply(names(b1), function(chr) { 
+  
+  circos.par("start.degree" = 90, "gap.degree" = 4)
+  
+  circos.initializeWithIdeogram(ideogram.height = 0.05,
+                                species = "hg38", 
+                                chromosome.index = chr, 
+                                plotType = c("ideogram"))
+  
+  circos.genomicAxis(major.by = 5000000, labels.cex = 1.25)
+  
+  circos.genomicLink(b1[[chr]], b2[[chr]], 
+                     col = color_fun(b1[[chr]]$logFC),
+                     border = NA)
+  
+  title(paste("tururu", "tuii tuiii"), sub = chr, line = -2)
+  
+  circos.clear()
+  
+  })
+  
+  dev.off()
+  
+  # one PNG for each chromosome
+  
+ # dir.create("results/lala/turu", recursive = TRUE)
 }
 #
 ######################## multiple chord plot ##########################
-multiple_chord_plot <- function() {
+plot_multiple_chords <- function() {
   ## CREATE LOTS OF PLOTS IN ONE PLOT
   
   # colour function
@@ -106,7 +121,7 @@ multiple_chord_plot <- function() {
     circos.par("start.degree" = 90, "gap.degree" = 4, "cell.padding" = c(0, 0, 0, 0))
     
     # add ideogram
-    circos.initializeWithIdeogram(ideogram.height = 0.05, major.by = 5000000,
+    circos.initializeWithIdeogram(ideogram.height = 0.5, major.by = 5000000,
                                   species = "hg38", chromosome.index = "chr9", 
                                   plotType = c("ideogram", "axis", "labels"))
     
@@ -131,18 +146,17 @@ if(FALSE %in% (bed1$DIRindex == bed2$DIRindex)) {
 ############################### PLOTS ##################################
 # If each chromosome is true, produce individual plots
 if(opt$each_chromosome) {
- 
+  
   # idk if this is wise but the factoring of chr is dynamic
   bed1$chr1 <- format_chromosomes(bed1$chr1, type = "individual")
   bed2$chr2 <- format_chromosomes(bed2$chr2, type = "individual")
   
   # call function
   plot_individual_chords(b1 = bed1, b2 = bed2)
-  
-  
+  message("A Chord plot for each chromosome has been produced.")
 }
 
-#
+
 # Produce the multiple chord plot
 
 
