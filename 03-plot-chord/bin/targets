@@ -1,0 +1,12 @@
+#!/bin/bash
+#
+# USAGE:
+# bin/targets
+
+find -L data/ \
+	-type f \
+	-name "*.bed1.sigpairs.table.Rds" \
+| sed -r \
+	-e 's#^data/#results/#' \
+	-e 's#.bed1.sigpairs.table.Rds$#.chord_diagram.png#'
+
