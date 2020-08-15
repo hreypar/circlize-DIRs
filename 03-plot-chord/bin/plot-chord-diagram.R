@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 #
 # hreyes August 2020
-# circlize-human-DIRs.R
+# plot-chord-diagram.R
 ########################################################################
 # Read in two BED files of DIRs and plot them in a circos like 
 # diagram
@@ -11,6 +11,13 @@
 suppressMessages(library(circlize))
 library(optparse)
 message("\nRequired libraries have been loaded.")
+#
+chord.chromosomes <- c("chr1", "chr7", "chr13", "chr19",
+  "chr2", "chr8", "chr14", "chr20",
+  "chr3", "chr9", "chr15", "chr21",
+  "chr4", "chr10", "chr16", "chr22",
+  "chr5", "chr11", "chr17", "chrX",
+  "chr6", "chr12", "chr18")
 #
 ########################## read in data ################################
 option_list = list(
@@ -22,30 +29,74 @@ option_list = list(
               help = "Input BED2 of significant pairs as an Rds file."),
   make_option(opt_str = c("-o", "--output_plot"), 
               type = "character", 
-              help = "File name (including path) for the chord diagram.")
+              help = "File name (including path but NO extension) for the chord diagram."),
+  make_option(opt_str = c("-e", "--each_chromosome"), 
+              type = "logical", 
+              help = "logical: Should every chromosome be plotted individually?")
 )
 
 opt <- parse_args(OptionParser(option_list=option_list))
 
-if (is.null(opt$input)){
+if (is.null(opt$input_bed1) | is.null(opt$input_bed2)){
   print_help(OptionParser(option_list=option_list))
-  stop("The input file is mandatory.n", call.=FALSE)
+  stop("TWO BED input files are mandatory.n", call.=FALSE)
 }
-
-
+#
 ########################## functions ###################################
 # it's dangerous to go alone! take this.
 #
-#################### Separate BED by chromosome ########################
-#
+######################## format chromosomes ############################
+format_chromosomes <- function(chrs) {
+  chrs <- replace(x = chrs, chrs == "chr23", "chrX")
+  chrs <- factor(chrs, levels = chord.chromosomes)
+#  chrs <- droplevels(chrs)
+  return(chrs)
+}
+########################################################################
 ######################### read in data #################################
+bed1 <- readRDS(opt$input_bed1)
+bed2 <- readRDS(opt$input_bed2)
 
-## READ IN BED1 AND BED2
-## THEN SEPARATE EACH BED BY CHROMOSOME (MAKE A LIST?)
-## IF THERE IS NO DATA IN A LIST MEMBER, ADD EMPTY DATA TO
+# check that the BEDs are paired
+matches = bed1$DIRindex == bed2$DIRindex
+if(FALSE %in% matches) {
+  stop("The BED files DON'T contain paired DIRs.")
+}
+############### format the chromosome columns ##########################
+bed1$chr1 <- format_chromosomes(bed1$chr1)
+bed2$chr2 <- format_chromosomes(bed2$chr2)
+#
+#################### Split BEDs by chromosome ##########################
+bed1 <- split(x = bed1, f = bed1$chr1, drop = FALSE)
+bed2 <- split(x = bed2, f = bed2$chr2, drop = FALSE)
+#
+############################### PLOTS ##################################
+# If each chromosome is true, produce individual plots
+if(opt$each_chromosome) {
+  
+  # PDF file with all plots
+  pdf(file = )
+  
+  color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
+                         colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
+  
+  circos.par("start.degree" = 90, "gap.degree" = 4)
+  
+  circos.initializeWithIdeogram(ideogram.height = 0.05, major.by = 5000000, species = "hg38", chromosome.index = "chr9", 
+                                plotType = c("ideogram", "axis", "labels"))
+  
+  circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
+  
+  circos.clear()
+  
+
+}
+
 
 ## CREATE LAYOUT WITH 6x4 PLOTS
-## FOR EACH OF THEM DO THE IDEOGRAM AND THE LINK TRACKS
+
+## FOR EACH NAME ON THE LIST DO THE IDEOGRAM AND THE LINK TRACKS
+## IF THERE IS NO DATA IN A LIST MEMBER, ADD EMPTY CHR PLOT
 
 
 #### SEE HOW TO ADD A TITLE AND HOW TO MAKE LABELS LARGER
@@ -53,28 +104,12 @@ if (is.null(opt$input)){
 #### ADD ONE LEGEND FOR logFC COLOURS
 
 
-#### IF A FLAG IS TRUE DRAW THE PDF INDIVIDUAL PLOTS
-#### IF ANOTHER FLAG IS TRUE DRAW THE INDIVIDUAL PLOTS EACH A PNG
-
-circos.clear()
-
-# get the colors that I used for the barplot of number of DIRs
-color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
-                       colors = c("blue", "white", "red"), transparency = 0)
-
-circos.par("start.degree" = 90, "gap.degree" = 4)
-
-circos.initializeWithIdeogram(ideogram.height = 0.05, major.by = 5000000, species = "hg38", chromosome.index = "chr9", 
-                              plotType = c("ideogram", "axis", "labels"))
-
-circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
-
 ############################################################################
 ## CREATE LOTS OF PLOTS IN ONE PLOT
 
 # colour function
 color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
-                      colors = c("blue", "white", "red"), transparency = 0)
+                      colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
 # Arrange the layout
 layout(matrix(1:24, 4, 6)) 
 
