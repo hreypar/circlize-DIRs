@@ -36,11 +36,15 @@ message("The data frame has been loaded.")
 #
 ################### add an index to keep track of DIRs #################
 significantpairs.df$DIRindex <- paste("DIR", seq(1:nrow(significantpairs.df)), sep="_")
+message("An index has been generated to keep track of DIRs.")
 #
 ################### subset data frame to generate beds #################
 bed1 = significantpairs.df[ ,c("chr1", "start1", "end1", "logFC", "DIRindex")]
+message("BED1 file has been created.")
 bed2 = significantpairs.df[ ,c("chr2", "start2", "end2", "logFC", "DIRindex")]
+message("BED2 file has been created.")
 #
 ############################ save bed files ############################
 saveRDS(object = bed1, file = opt$output_bed1)
 saveRDS(object = bed2, file = opt$output_bed2)
+message("BED files have been saved as RDS files.\n")
