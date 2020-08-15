@@ -9,16 +9,9 @@
 #
 #################### import libraries and set options ##################
 library(optparse)
+message("\nLoaded libraries.")
 #
-########################## functions ###################################
-# it's dangerous to go alone! take this.
-#
-# save an individual data frame from the list
-export_significantpairs_df <- function(sigpairs.name) {
-
-}
-# 
-########################## read in data ###################################
+########################## read in data ################################
 option_list = list(
   make_option(opt_str = c("-i", "--input"), 
               type = "character",
@@ -39,8 +32,15 @@ if (is.null(opt$input)){
 }
 
 significantpairs.df <- readRDS(file = opt$input)
-
-dim(significantpairs.df)
+message("The data frame has been loaded.")
 #
-########### call function to write out individual data frames #############
-
+################### add an index to keep track of DIRs #################
+significantpairs.df$DIRindex <- paste("DIR", seq(1:nrow(significantpairs.df)), sep="_")
+#
+################### subset data frame to generate beds #################
+bed1 = significantpairs.df[ ,c("chr1", "start1", "end1", "logFC", "DIRindex")]
+bed2 = significantpairs.df[ ,c("chr2", "start2", "end2", "logFC", "DIRindex")]
+#
+############################ save bed files ############################
+saveRDS(object = bed1, file = opt$output_bed1)
+saveRDS(object = bed2, file = opt$output_bed2)
