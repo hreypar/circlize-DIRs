@@ -29,7 +29,7 @@ option_list = list(
   make_option(opt_str = c("-j", "--input_bed2"), 
               type = "character", 
               help = "Input BED2 of significant pairs as an Rds file."),
-  make_option(opt_str = c("-o", "--output_plot"), 
+  make_option(opt_str = c("-o", "--out_plot"), 
               type = "character", 
               help = "File name (including path but NO extension) for the chord diagram."),
   make_option(opt_str = c("-e", "--each_chromosome"), 
@@ -70,27 +70,38 @@ plot_individual_chords <- function(b1, b2) {
   
   # Set colours to use
   color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
-                         colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
+                         colors = c('#ff3633', "grey",'#0c007a'), transparency = 0)
   
-    # PDF file for all plots
-  pdf(file = paste0(opt$output_plot, "_byChr.pdf"), width = 18, height = 18)
+  # generate main title
+  this.main = paste("Differentially Interacting Regions", 
+                    gsub("\\.chord_diagram", "", gsub(".+__", "", opt$out_plot)))
+  
+  ##########
+  # PDF file for all plots
+  pdf(file = paste0(opt$out_plot, "_byChr.pdf"), width = 18, height = 18)
   
   lapply(names(b1), function(chr) { 
   
+  # begin plotting chromosome on top, separate the chromosome ends by 4.
   circos.par("start.degree" = 90, "gap.degree" = 4)
   
+  # plot the ideogram aka cytoband
   circos.initializeWithIdeogram(ideogram.height = 0.05,
                                 species = "hg38", 
                                 chromosome.index = chr, 
                                 plotType = c("ideogram"))
-  
+  # plot the axis with ticks each 5Mb.
   circos.genomicAxis(major.by = 5000000, labels.cex = 1.25)
-  
+  # plot the DIRs as links.
   circos.genomicLink(b1[[chr]], b2[[chr]], 
                      col = color_fun(b1[[chr]]$logFC),
                      border = NA)
   
-  title(paste("tururu", "tuii tuiii"), sub = chr, line = -2)
+  
+  title(main = this.main, sub = chr, 
+        cex.main = 2.5, cex.sub = 3, 
+        line = -1.25, adj = 0.1,
+        font.main = 2, font.sub = 2)
   
   circos.clear()
   
@@ -98,7 +109,8 @@ plot_individual_chords <- function(b1, b2) {
   
   dev.off()
   
-  # one PNG for each chromosome
+  ##########
+  # One PNG file for each chromosome
   
  # dir.create("results/lala/turu", recursive = TRUE)
 }
