@@ -8,5 +8,5 @@ find -L data/ \
 	-name "*.bed1.sigpairs.table.Rds" \
 | sed -r \
 	-e 's#^data/#results/#' \
-	-e 's#.bed1.sigpairs.table.Rds$#.chord_diagram#'
+	-e 's#.bed1.sigpairs.table.Rds$#.chord_diagram.png#'
 
