@@ -19,6 +19,8 @@ chord.chromosomes <- c("chr1", "chr7", "chr13", "chr19",
   "chr5", "chr11", "chr17", "chrX",
   "chr6", "chr12", "chr18")
 #
+individual.chromosomes <- c(paste0("chr", seq(1,22,1)), "chrX")
+#
 ########################## read in data ################################
 option_list = list(
   make_option(opt_str = c("-i", "--input_bed1"), 
@@ -46,89 +48,105 @@ if (is.null(opt$input_bed1) | is.null(opt$input_bed2)){
 # it's dangerous to go alone! take this.
 #
 ######################## format chromosomes ############################
-format_chromosomes <- function(chrs) {
+format_chromosomes <- function(chrs, type) {
+  # replace chr23 for chrX
   chrs <- replace(x = chrs, chrs == "chr23", "chrX")
-  chrs <- factor(chrs, levels = chord.chromosomes)
-#  chrs <- droplevels(chrs)
+  
+  # use factors depending on type of formatting
+  if(type == "individual") {
+    chrs <- factor(chrs, levels = individual.chromosomes)
+  } else if (type == "chord") {
+    chrs <- factor(chrs, levels = chord.chromosomes)
+  }
   return(chrs)
 }
+#
+######################## plot each chromosome ##########################
+plot_individual_chords <- function() {
+
+# Split BEDs by chromosome
+bed1 <- split(x = bed1, f = bed1$chr1, drop = FALSE)
+bed2 <- split(x = bed2, f = bed2$chr2, drop = FALSE)
+
+
+# PDF file for all plots
+pdf(file = )
+
+color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
+                       colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
+
+circos.par("start.degree" = 90, "gap.degree" = 4)
+
+circos.initializeWithIdeogram(ideogram.height = 0.05, major.by = 5000000, species = "hg38", chromosome.index = "chr9", 
+                              plotType = c("ideogram", "axis", "labels"))
+
+circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
+
+circos.clear()
+
+# one PNG for each chromosome
+
+}
+#
+######################## multiple chord plot ##########################
+multiple_chord_plot <- function() {
+  ## CREATE LOTS OF PLOTS IN ONE PLOT
+  
+  # colour function
+  color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
+                         colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
+  # Arrange the layout WITH 6x4 PLOTS
+  layout(matrix(1:24, 4, 6)) 
+  
+  # A loop to create 23 circular plots
+  for(i in 1:23) {
+    par(mar = c(0.25, 0.25, 0.25, 0.25), bg=rgb(1,1,1,0.1) )
+    
+    # parameters
+    circos.par("start.degree" = 90, "gap.degree" = 4, "cell.padding" = c(0, 0, 0, 0))
+    
+    # add ideogram
+    circos.initializeWithIdeogram(ideogram.height = 0.05, major.by = 5000000,
+                                  species = "hg38", chromosome.index = "chr9", 
+                                  plotType = c("ideogram", "axis", "labels"))
+    
+    # add links
+    circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
+    
+    circos.clear()
+  }
+}
+#
 ########################################################################
+# MAIN CODE #
 ######################### read in data #################################
 bed1 <- readRDS(opt$input_bed1)
 bed2 <- readRDS(opt$input_bed2)
 
 # check that the BEDs are paired
-matches = bed1$DIRindex == bed2$DIRindex
-if(FALSE %in% matches) {
+if(FALSE %in% (bed1$DIRindex == bed2$DIRindex)) {
   stop("The BED files DON'T contain paired DIRs.")
 }
-############### format the chromosome columns ##########################
-bed1$chr1 <- format_chromosomes(bed1$chr1)
-bed2$chr2 <- format_chromosomes(bed2$chr2)
-#
-#################### Split BEDs by chromosome ##########################
-bed1 <- split(x = bed1, f = bed1$chr1, drop = FALSE)
-bed2 <- split(x = bed2, f = bed2$chr2, drop = FALSE)
 #
 ############################### PLOTS ##################################
 # If each chromosome is true, produce individual plots
 if(opt$each_chromosome) {
+ 
+  # idk if this is wise but the factoring of chr is dynamic
+  bed1$chr1 <- format_chromosomes(bed1$chr1, type = "individual")
+  bed2$chr2 <- format_chromosomes(bed2$chr2, type = "individual")
   
-  # PDF file with all plots
-  pdf(file = )
+  # call function
+  plot_individual_chords(b1 = bed1, b2 = bed2)
   
-  color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
-                         colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
   
-  circos.par("start.degree" = 90, "gap.degree" = 4)
-  
-  circos.initializeWithIdeogram(ideogram.height = 0.05, major.by = 5000000, species = "hg38", chromosome.index = "chr9", 
-                                plotType = c("ideogram", "axis", "labels"))
-  
-  circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
-  
-  circos.clear()
-  
-
 }
 
+#
+# Produce the multiple chord plot
 
-## CREATE LAYOUT WITH 6x4 PLOTS
-
-## FOR EACH NAME ON THE LIST DO THE IDEOGRAM AND THE LINK TRACKS
-## IF THERE IS NO DATA IN A LIST MEMBER, ADD EMPTY CHR PLOT
 
 
 #### SEE HOW TO ADD A TITLE AND HOW TO MAKE LABELS LARGER
 #### ALSO PLOT THE CHROMOSOME NAME FOR EACH CHORD DIAGRAM
 #### ADD ONE LEGEND FOR logFC COLOURS
-
-
-############################################################################
-## CREATE LOTS OF PLOTS IN ONE PLOT
-
-# colour function
-color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
-                      colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
-# Arrange the layout
-layout(matrix(1:24, 4, 6)) 
-
-# A loop to create 23 circular plots
-for(i in 1:23) {
-  par(mar = c(0.25, 0.25, 0.25, 0.25), bg=rgb(1,1,1,0.1) )
-
-  # parameters
-  circos.par("start.degree" = 90, "gap.degree" = 4, "cell.padding" = c(0, 0, 0, 0))
-  
-  # add ideogram
-  circos.initializeWithIdeogram(ideogram.height = 0.05, major.by = 5000000,
-                                species = "hg38", chromosome.index = "chr9", 
-                                plotType = c("ideogram", "axis", "labels"))
-  
-  # add links
-  circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
-
-  circos.clear()
-}
-
-
