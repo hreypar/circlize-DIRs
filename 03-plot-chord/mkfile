@@ -12,7 +12,7 @@
 #
 # Run R script to generate chord diagram from BEDs.
 #
-results/%.chord_diagram data/%.bed1.sigpairs.table.Rds data/%.bed2.sigpairs.table.Rds
+results/%.chord_diagram:	data/%.bed1.sigpairs.table.Rds data/%.bed2.sigpairs.table.Rds
 	mkdir -p `dirname $target`
 	bin/plot-chord-diagram.R \
 		--input_bed1 data/$stem.bed1.sigpairs.table.Rds \
