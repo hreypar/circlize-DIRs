@@ -1,0 +1,23 @@
+# DESCRIPTION:
+# mk module to separate a list of significant pairs 
+# into individual data frames.
+#
+# USAGE:
+# Single target execution: `mk <TARGET>` where TARGET is
+# any line printed by the script `bin/mk-targets`
+#
+# Multiple target execution in tandem `bin/mk-targets | xargs mk`
+#
+# AUTHOR: HRG
+#
+# Run R script to read in significant pairs list and
+# output individual data frames.
+#
+results/%.separated:	data/%.significantpairs.Rds
+	mkdir -p `dirname $target`
+	touch $target.build
+	bin/separate-significantpairs-list.R \
+		--input $prereq \
+		--outdir `dirname $target` \
+	&& mv $target.build $target
+
