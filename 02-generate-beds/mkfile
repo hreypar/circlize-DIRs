@@ -16,6 +16,6 @@ results/%.bed1.sigpairs.table.Rds results/%.bed2.sigpairs.table.Rds:	data/%.sign
 	mkdir -p `dirname $target`
 	bin/generate-beds.R \
 		--input $prereq \
-		--output_bed1 results/$stem.bed1.significantpairs.table.Rds \
-		--output_bed2 results/$stem.bed2.significantpairs.table.Rds
+		--output_bed1 results/$stem.bed1.sigpairs.table.Rds \
+		--output_bed2 results/$stem.bed2.sigpairs.table.Rds
 
