@@ -1,0 +1,22 @@
+# DESCRIPTION:
+# mk module to separate a significant pairs data frame 
+# into two BED files.
+#
+# USAGE:
+# Single target execution: `mk <TARGET>` where TARGET is
+# any line printed by the script `bin/mk-targets`
+#
+# Multiple target execution in tandem `bin/mk-targets | xargs mk`
+#
+# AUTHOR: HRG
+#
+# Run R script to generate BEDs.
+#
+results/%.bed1.significantpairs.table.Rds\
+results/%.bed2.significantpairs.table.Rds:	data/%.significantpairs.table.Rds
+	mkdir -p `dirname $target`
+	bin/generate-beds.R \
+		--input $prereq \
+		--output_bed1 results/$stem.bed1.significantpairs.table.Rds \
+		--output_bed2 results/$stem.bed2.significantpairs.table.Rds
+
