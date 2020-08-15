@@ -26,7 +26,7 @@ export_significantpairs_df <- function(sigpairs.name) {
   the.parent = gsub("\\.significantpairs\\.Rds", "", basename(opt$input))
   
   # build name for outfile
-  the.outfile = paste0(opt$outdir, "/", the.parent, "-", this.df, ".significantpairs.table.Rds")
+  the.outfile = paste0(opt$outdir, "/", the.parent, "__", this.df, ".significantpairs.table.Rds")
   
   saveRDS(object = sigpairs.df, file = the.outfile)
 }
