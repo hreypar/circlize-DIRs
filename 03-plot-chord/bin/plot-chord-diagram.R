@@ -61,26 +61,13 @@ format_chromosomes <- function(chrs, type) {
   return(chrs)
 }
 #
-######################## plot each chromosome ##########################
-plot_individual_chords <- function(b1, b2) {
-
-  # Split BEDs by chromosome
-  b1 <- split(x = b1, f = b1$chr1, drop = TRUE)
-  b2 <- split(x = b2, f = b2$chr2, drop = TRUE)
-  
-  # Set colours to use
-  color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
-                         colors = c('#ff3633', "grey",'#0c007a'), transparency = 0)
-  
-  # generate main title
-  this.main = paste("Differentially Interacting Regions", 
-                    gsub("\\.chord_diagram", "", gsub(".+__", "", opt$out_plot)))
-  
-  ##########
-  # PDF file for all plots
-  pdf(file = paste0(opt$out_plot, "_byChr.pdf"), width = 18, height = 18)
-  
-  lapply(names(b1), function(chr) { 
+####################### set colours to use #############################
+colour_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
+                       colors = c('#ff3633', "grey",'#0c007a'), 
+                       transparency = 0.2)
+#
+####################### basic chord function ###########################
+basic_chord <- function(b1, b2, chr.ind, main.title) {
   
   # begin plotting chromosome on top, separate the chromosome ends by 4.
   circos.par("start.degree" = 90, "gap.degree" = 4)
@@ -88,31 +75,72 @@ plot_individual_chords <- function(b1, b2) {
   # plot the ideogram aka cytoband
   circos.initializeWithIdeogram(ideogram.height = 0.05,
                                 species = "hg38", 
-                                chromosome.index = chr, 
+                                chromosome.index = chr.ind, 
                                 plotType = c("ideogram"))
   # plot the axis with ticks each 5Mb.
-  circos.genomicAxis(major.by = 5000000, labels.cex = 1.25)
+  circos.genomicAxis(major.by = 5000000, labels.cex = 1.15)
   # plot the DIRs as links.
-  circos.genomicLink(b1[[chr]], b2[[chr]], 
-                     col = color_fun(b1[[chr]]$logFC),
+  circos.genomicLink(b1, b2, 
+                     col = colour_fun(b1$logFC),
                      border = NA)
   
-  
-  title(main = this.main, sub = chr, 
+  title(main = main.title, sub = chr.ind, 
         cex.main = 2, cex.sub = 3.5, 
         line = -1.25, adj = 0.05,
         font.main = 2, font.sub = 2)
   
   circos.clear()
+}
+######################## plot each chromosome ##########################
+plot_individual_chords <- function(bed1, bed2) {
+
+  # Split BEDs by chromosome
+  bed1 <- split(x = bed1, f = bed1$chr1, drop = TRUE)
+  bed2 <- split(x = bed2, f = bed2$chr2, drop = TRUE)
   
-  })
+  # obtain this comparisons name
+  comparison = gsub("\\.chord_diagram", "", gsub(".+__", "", opt$out_plot))
+  
+  # generate main title for this plot
+  this.main = paste("Differentially Interacting Regions", comparison)
+
+  ##############################
+  # One PDF file for all plots
+  ##############################
+  
+  pdf(file = paste0(opt$out_plot, "_byChr.pdf"), width = 18, height = 18)
+
+  mapply(basic_chord, bed1, bed2, chr.ind = names(bed1), main.title = this.main)
   
   dev.off()
   
-  ##########
-  # One PNG file for each chromosome
+  message(paste("One PDF file with", length(bed1), "chord plots has been created."))
   
- # dir.create("results/lala/turu", recursive = TRUE)
+  ##############################
+  # One PNG file for each chromosome
+  ##############################
+  
+  # create directory for plots
+  individuals.directory = paste0(dirname(opt$out_plot),
+                                 "/individual-chromosomes-",
+                                 comparison, "/")
+  dir.create(individuals.directory, recursive = TRUE, showWarnings = FALSE)
+  
+  # create basic name for plots
+  individuals.name = paste0(individuals.directory, comparison, ".chord_diagram")
+  
+  # call plotting function for each list element
+  lapply(names(bed1), function(chr) {
+  
+    png(filename = paste0(individuals.name, "_", chr, ".png"), 
+        width = 14, height = 14, units = "in", res = 350)
+    
+    basic_chord(b1 = bed1[[chr]], b2 = bed2[[chr]], chr.ind = chr, main.title = this.main)
+    
+    dev.off()
+  })
+  
+  message(paste(length(bed1), "PNG files (each with one chord plot) have been created."))
 }
 #
 ######################## multiple chord plot ##########################
@@ -144,28 +172,29 @@ plot_multiple_chords <- function() {
   }
 }
 #
+#
+message("Required functions have been loaded.")
 ########################################################################
 # MAIN CODE #
 ######################### read in data #################################
-bed1 <- readRDS(opt$input_bed1)
-bed2 <- readRDS(opt$input_bed2)
+my.bed1 <- readRDS(opt$input_bed1)
+my.bed2 <- readRDS(opt$input_bed2)
 
 # check that the BEDs are paired
-if(FALSE %in% (bed1$DIRindex == bed2$DIRindex)) {
+if(FALSE %in% (my.bed1$DIRindex == my.bed2$DIRindex)) {
   stop("The BED files DON'T contain paired DIRs.")
 }
 #
 ############################### PLOTS ##################################
-# If each chromosome is true, produce individual plots
+# If each_chromosome is true, produce individual plots
 if(opt$each_chromosome) {
   
   # idk if this is wise but the factoring of chr is dynamic
-  bed1$chr1 <- format_chromosomes(bed1$chr1, type = "individual")
-  bed2$chr2 <- format_chromosomes(bed2$chr2, type = "individual")
+  my.bed1$chr1 <- format_chromosomes(my.bed1$chr1, type = "individual")
+  my.bed2$chr2 <- format_chromosomes(my.bed2$chr2, type = "individual")
   
   # call function
-  plot_individual_chords(b1 = bed1, b2 = bed2)
-  message("A Chord plot for each chromosome has been produced.")
+  plot_individual_chords(bed1 = my.bed1, bed2 = my.bed2)
 }
 
 
@@ -173,6 +202,7 @@ if(opt$each_chromosome) {
 
 
 
-#### SEE HOW TO ADD A TITLE AND HOW TO MAKE LABELS LARGER
-#### ALSO PLOT THE CHROMOSOME NAME FOR EACH CHORD DIAGRAM
-#### ADD ONE LEGEND FOR logFC COLOURS
+#### PENDIENTES ####
+# ADD ONE LEGEND FOR logFC COLOURS
+# ADD RESOLUTION TO THE TITLES
+# MULTIPLE CHORD PLOTS
