@@ -6,22 +6,20 @@
 # Read in two BED files of DIRs and plot them in a circos like 
 # diagram
 ########################################################################
-#
 #################### import libraries and set options ##################
 suppressMessages(library(circlize))
 library(optparse)
 message("\nRequired libraries have been loaded.")
 #
-chord.chromosomes <- c("chr1", "chr7", "chr13", "chr19",
-  "chr2", "chr8", "chr14", "chr20",
-  "chr3", "chr9", "chr15", "chr21",
-  "chr4", "chr10", "chr16", "chr22",
-  "chr5", "chr11", "chr17", "chrX",
-  "chr6", "chr12", "chr18")
+multiple.chromosomes <- c("chr1", "chr7", "chr13", "chr19",
+                          "chr2", "chr8", "chr14", "chr20",
+                          "chr3", "chr9", "chr15", "chr21",
+                          "chr4", "chr10", "chr16", "chr22",
+                          "chr5", "chr11", "chr17", "chrX",
+                          "chr6", "chr12", "chr18")
 #
 individual.chromosomes <- c(paste0("chr", seq(1,22,1)), "chrX")
 #
-########################## read in data ################################
 option_list = list(
   make_option(opt_str = c("-i", "--input_bed1"), 
               type = "character",
@@ -55,8 +53,8 @@ format_chromosomes <- function(chrs, type) {
   # use factors depending on type of formatting
   if(type == "individual") {
     chrs <- factor(chrs, levels = individual.chromosomes)
-  } else if (type == "chord") {
-    chrs <- factor(chrs, levels = chord.chromosomes)
+  } else if (type == "multiple") {
+    chrs <- factor(chrs, levels = multiple.chromosomes)
   }
   return(chrs)
 }
@@ -143,40 +141,49 @@ plot_individual_chords <- function(bed1, bed2) {
   message(paste(length(bed1), "PNG files (each with one chord plot) have been created."))
 }
 #
-######################## multiple chord plot ##########################
-plot_multiple_chords <- function() {
-  ## CREATE LOTS OF PLOTS IN ONE PLOT
+######################## plot all chromosomes ##########################
+plot_multiple_chords <- function(bed1, bed2) {
   
-  # colour function
-  color_fun = colorRamp2(breaks = c(-0.00001, 0, 0.00001), 
-                         colors = c('#0c007a', "grey", '#ff3633'), transparency = 0)
+  # Split BEDs by chromosome keeping all factors
+  bed1 <- split(x = bed1, f = bed1$chr1, drop = FALSE)
+  bed2 <- split(x = bed2, f = bed2$chr2, drop = FALSE)
+  
   # Arrange the layout WITH 6x4 PLOTS
-  layout(matrix(1:24, 4, 6)) 
+  layout(matrix(1:24, 4, 6))
   
   # A loop to create 23 circular plots
   for(i in 1:23) {
     par(mar = c(0.25, 0.25, 0.25, 0.25), bg=rgb(1,1,1,0.1) )
     
-    # parameters
-    circos.par("start.degree" = 90, "gap.degree" = 4, "cell.padding" = c(0, 0, 0, 0))
+    circos.par("start.degree" = 90, "gap.degree" = 4)
     
-    # add ideogram
-    circos.initializeWithIdeogram(ideogram.height = 0.5, major.by = 5000000,
-                                  species = "hg38", chromosome.index = "chr9", 
-                                  plotType = c("ideogram", "axis", "labels"))
+    # plot the ideogram aka cytoband
+    circos.initializeWithIdeogram(ideogram.height = 0.05,
+                                  species = "hg38", 
+                                  chromosome.index = names(bed1[i]), 
+                                  plotType = c("ideogram"))
     
-    # add links
-    circos.genomicLink(bed1, bed2, col = color_fun(bed1$logFC), border = NA)
+    # plot the axis with ticks each 5Mb.
+    circos.genomicAxis(major.by = 5000000, labels.cex = 0.5)
+    
+    # plot the DIRs as links.
+    circos.genomicLink(bed1[[i]], bed2[[i]], 
+                       col = colour_fun(bed1[[i]]$logFC),
+                       border = NA)
+    
+    title(main = "", sub = names(bed1[i]), 
+          cex.main = 0.1, cex.sub = 1.5, 
+          line = -0.5, adj = 0.05,
+          font.main = 2, font.sub = 2)
     
     circos.clear()
   }
 }
 #
-#
 message("Required functions have been loaded.")
 ########################################################################
 # MAIN CODE #
-######################### read in data #################################
+######################### read in data
 my.bed1 <- readRDS(opt$input_bed1)
 my.bed2 <- readRDS(opt$input_bed2)
 
@@ -185,7 +192,7 @@ if(FALSE %in% (my.bed1$DIRindex == my.bed2$DIRindex)) {
   stop("The BED files DON'T contain paired DIRs.")
 }
 #
-############################### PLOTS ##################################
+########################## Individual plots 
 # If each_chromosome is true, produce individual plots
 if(opt$each_chromosome) {
   
@@ -196,13 +203,17 @@ if(opt$each_chromosome) {
   # call function
   plot_individual_chords(bed1 = my.bed1, bed2 = my.bed2)
 }
-
-
+#
+######################### All together plots
 # Produce the multiple chord plot
+my.bed1$chr1 <- format_chromosomes(my.bed1$chr1, type = "multiple")
+my.bed2$chr2 <- format_chromosomes(my.bed2$chr2, type = "multiple")
+
+plot_multiple_chords(bed1 = my.bed1, bed2 = my.bed2)
+
 
 
 
 #### PENDIENTES ####
 # ADD ONE LEGEND FOR logFC COLOURS
 # ADD RESOLUTION TO THE TITLES
-# MULTIPLE CHORD
