@@ -86,7 +86,7 @@ basic_chord <- function(b1, b2, chr.ind, main.title) {
   
   title(main = main.title, sub = chr.ind, 
         cex.main = 2, cex.sub = 3.5, 
-        line = -1.25, adj = 0.05,
+        line = -0.5, adj = 0.05,
         font.main = 2, font.sub = 2)
   
   circos.clear()
@@ -205,4 +205,4 @@ if(opt$each_chromosome) {
 #### PENDIENTES ####
 # ADD ONE LEGEND FOR logFC COLOURS
 # ADD RESOLUTION TO THE TITLES
-# MULTIPLE CHORD PLOTS
+# MULTIPLE CHORD
