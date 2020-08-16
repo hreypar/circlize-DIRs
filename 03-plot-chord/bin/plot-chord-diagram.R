@@ -148,14 +148,31 @@ plot_multiple_chords <- function(bed1, bed2) {
   bed1 <- split(x = bed1, f = bed1$chr1, drop = FALSE)
   bed2 <- split(x = bed2, f = bed2$chr2, drop = FALSE)
   
+  # obtain this comparisons name
+  comparison = gsub("\\.chord_diagram", "", gsub(".+__", "", opt$out_plot))
+  
+  # generate main title for this plot
+  this.main = paste("Differentially Interacting Regions", comparison)
+  
+  png(paste0(opt$out_plot, ".png"), width = 18, height = 12, units = "in", res = 300)
   # Arrange the layout WITH 6x4 PLOTS
+  
+  par(oma = c(0, 0, 4, 0))
+  
   layout(matrix(1:24, 4, 6))
   
   # A loop to create 23 circular plots
   for(i in 1:23) {
-    par(mar = c(0.25, 0.25, 0.25, 0.25), bg=rgb(1,1,1,0.1) )
+    
+    if(nrow(bed1[[i]]) == 0) {
+      plot.new()
+      next
+    }
+    
+    par("mar"=c(0.2, 0.2, 0.2, 0.2))
     
     circos.par("start.degree" = 90, "gap.degree" = 4)
+
     
     # plot the ideogram aka cytoband
     circos.initializeWithIdeogram(ideogram.height = 0.05,
@@ -172,12 +189,17 @@ plot_multiple_chords <- function(bed1, bed2) {
                        border = NA)
     
     title(main = "", sub = names(bed1[i]), 
-          cex.main = 0.1, cex.sub = 1.5, 
-          line = -0.5, adj = 0.05,
+          cex.main = 0.1, cex.sub = 2, 
+          line = -1.5, adj = 0.05,
           font.main = 2, font.sub = 2)
+    
+    mtext(this.main, outer = TRUE, line = 1, cex = 1.5)
     
     circos.clear()
   }
+  
+  dev.off()
+  message(paste("A PNG plot with", i, "chord diagrams has been generated"))
 }
 #
 message("Required functions have been loaded.")
@@ -210,8 +232,6 @@ my.bed1$chr1 <- format_chromosomes(my.bed1$chr1, type = "multiple")
 my.bed2$chr2 <- format_chromosomes(my.bed2$chr2, type = "multiple")
 
 plot_multiple_chords(bed1 = my.bed1, bed2 = my.bed2)
-
-
 
 
 #### PENDIENTES ####
