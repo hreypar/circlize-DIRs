@@ -20,6 +20,6 @@ results/%.chord_diagram:	data/%.bed1.sigpairs.table.Rds data/%.bed2.sigpairs.tab
 	bin/plot-chord-diagram.R \
 		--input_bed1 data/$stem.bed1.sigpairs.table.Rds \
 		--input_bed2 data/$stem.bed2.sigpairs.table.Rds \
-		--output_plot $target \
+		--out_plot $target \
 		--each_chromosome $plot_each_chromosome
 
