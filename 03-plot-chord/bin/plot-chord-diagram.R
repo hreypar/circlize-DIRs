@@ -199,7 +199,7 @@ plot_multiple_chords <- function(bed1, bed2) {
   }
   
   dev.off()
-  message(paste("A PNG plot with", i, "chord diagrams has been generated"))
+  message(paste("A PNG plot with", i, "chord diagrams has been created\n"))
 }
 #
 message("Required functions have been loaded.")
